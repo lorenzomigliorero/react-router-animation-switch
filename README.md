@@ -1,4 +1,4 @@
-# react-router-transition-switch
+# react-router-animation-switch
 
 A component to manage routes transitions with React.16.7+
 
