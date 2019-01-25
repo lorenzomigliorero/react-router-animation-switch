@@ -1,6 +1,6 @@
 {
   "name": "react-router-animation-switch",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A component to manage routes animations with React.16.7+",
   "main": "dist/index.js",
   "scripts": {
@@ -40,7 +40,6 @@
     "react-router-dom": "^4.4.0-beta.6"
   },
   "dependencies": {
-    "@aquestsrl/dev-utils": "^1.6.0",
     "@babel/core": "^7.2.2",
     "@babel/preset-react": "^7.0.0",
     "promise-cancel": "^2.0.1"
