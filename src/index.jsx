@@ -5,8 +5,9 @@ import PropTypes from 'prop-types';
 import { withRouter, matchPath } from 'react-router-dom';
 import promiseCancel from 'promise-cancel';
 
+export default
 @withRouter
-class TransitionSwitch extends Component {
+class AnimationSwitch extends Component {
   static propTypes = {
     parallel: PropTypes.bool,
     children: PropTypes.oneOfType([
@@ -43,7 +44,7 @@ class TransitionSwitch extends Component {
   static getRouteWithRef(props, route, ref) {
     if (!route) return null;
     /*
-      Call ref function once to avoid ref overwrite on TransitionSwitch rerender,
+      Call ref function once to avoid ref overwrite on AnimationSwitch rerender,
       after a setState
     */
     let index = 0;
@@ -75,7 +76,7 @@ class TransitionSwitch extends Component {
 
   state = (() => {
     const { location } = this.props;
-    const route = TransitionSwitch.getMatchedRoute(this.props);
+    const route = AnimationSwitch.getMatchedRoute(this.props);
     const match = route.props.path
       ? matchPath(location.pathname, route.props)
       : null;
@@ -96,7 +97,7 @@ class TransitionSwitch extends Component {
       leaveRouteKey,
     } = state;
 
-    const nextMatchedRoute = TransitionSwitch.getMatchedRoute(nextProps);
+    const nextMatchedRoute = AnimationSwitch.getMatchedRoute(nextProps);
     const nextMatch = nextMatchedRoute.props.path
       ? matchPath(nextProps.location.pathname, nextMatchedRoute.props)
       : null;
@@ -308,13 +309,13 @@ class TransitionSwitch extends Component {
       parallel,
     } = this.props;
 
-    const leaveRoute = raceMode ? null : TransitionSwitch.getRouteWithRef(
+    const leaveRoute = raceMode ? null : AnimationSwitch.getRouteWithRef(
       { location: prevLocation },
       children.find(r => r.key === leaveRouteKey),
       this.leaveRef,
     );
 
-    const enterRoute = isFetching ? null : TransitionSwitch.getRouteWithRef(
+    const enterRoute = isFetching ? null : AnimationSwitch.getRouteWithRef(
       { location },
       children.find(r => r.key === enterRouteKey),
       this.enterRef,
@@ -336,5 +337,3 @@ class TransitionSwitch extends Component {
       );
   }
 }
-
-export default TransitionSwitch;
