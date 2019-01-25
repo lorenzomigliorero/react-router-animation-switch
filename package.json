@@ -1,6 +1,6 @@
 {
   "name": "react-router-animation-switch",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A component to manage routes animations with React.16.7+",
   "main": "dist/index.js",
   "scripts": {
@@ -25,7 +25,7 @@
   "peerDependencies": {
     "prop-types": "^15.6.1",
     "react": "^16.7.0",
-    "react-router-dom": "^4.4.0"
+    "react-router-dom": "^4.4.0-alpha"
   },
   "devDependencies": {
     "babel-eslint": "^10.0.1",
