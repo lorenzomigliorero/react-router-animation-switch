@@ -4,9 +4,11 @@ import React, {
 import PropTypes from 'prop-types';
 import { withRouter, matchPath } from 'react-router-dom';
 import promiseCancel from 'promise-cancel';
+import {
+  actions,
+  reducer,
+} from './state';
 
-export default
-@withRouter
 class AnimationSwitch extends Component {
   static propTypes = {
     parallel: PropTypes.bool,
@@ -133,8 +135,7 @@ class AnimationSwitch extends Component {
   }
 
   componentDidMount() {
-    const appearPromise = this.saveCancellablePromise(this.routeComponentWillAppear());
-    appearPromise.promise.then(this.routeComponentDidAppear).catch(() => {});
+    this.callAppearLifeCycle();
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -146,7 +147,10 @@ class AnimationSwitch extends Component {
       raceMode,
     } = this.state;
 
-    const { parallel } = this.props;
+    const {
+      dispatch,
+      parallel,
+    } = this.props;
 
     const initTransition = (
       prevState.enterRouteKey !== enterRouteKey
@@ -156,6 +160,7 @@ class AnimationSwitch extends Component {
     const fetchIsEnded = prevState.isFetching && !isFetching;
 
     if (initTransition) {
+      dispatch(actions.onStart());
       this.resetCancellablePromises();
       this.fetchData();
     }
@@ -180,17 +185,33 @@ class AnimationSwitch extends Component {
   }
 
   callLeaveLifeCycle = () => {
+    const { dispatch } = this.props;
+    dispatch(actions.onStartLeave());
     const leavePromise = this.saveCancellablePromise(this.routeComponentWillLeave());
     return leavePromise.promise
       .then(this.routeComponentDidLeave)
+      .then(() => dispatch(actions.onFinishLeave()))
       .then(() => this.setState({ leaveRouteKey: null }))
       .catch(() => {});
   }
 
+  callAppearLifeCycle = () => {
+    const { dispatch } = this.props;
+    dispatch(actions.onStartEnter());
+    const appearPromise = this.saveCancellablePromise(this.routeComponentWillAppear());
+    return appearPromise.promise
+      .then(this.routeComponentDidAppear)
+      .then(() => dispatch(actions.onFinishEnter()))
+      .catch(() => { });
+  }
+
   callEnterLifeCycle = () => {
+    const { dispatch } = this.props;
+    dispatch(actions.onStartEnter());
     const enterPromise = this.saveCancellablePromise(this.routeComponentWillEnter());
     return enterPromise.promise
       .then(this.routeComponentDidEnter)
+      .then(() => dispatch(actions.onFinishEnter()))
       .catch(() => {});
   }
 
@@ -337,3 +358,10 @@ class AnimationSwitch extends Component {
       );
   }
 }
+
+export {
+  actions,
+  reducer,
+};
+
+export default withRouter(AnimationSwitch);

@@ -3,6 +3,7 @@
   "version": "0.1.4",
   "description": "A component to manage routes animations with React.16.7+",
   "main": "dist/index.js",
+  "main": "src/index.jsx",
   "scripts": {
     "dev": "malmo dev",
     "commit": "git-cz",
