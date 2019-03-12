@@ -147,10 +147,7 @@ class AnimationSwitch extends Component {
       raceMode,
     } = this.state;
 
-    const {
-      dispatch,
-      parallel,
-    } = this.props;
+    const { parallel } = this.props;
 
     const initTransition = (
       prevState.enterRouteKey !== enterRouteKey
@@ -160,7 +157,7 @@ class AnimationSwitch extends Component {
     const fetchIsEnded = prevState.isFetching && !isFetching;
 
     if (initTransition) {
-      dispatch(actions.onStart());
+      this.dispatch('onStart');
       this.resetCancellablePromises();
       this.fetchData();
     }
@@ -185,34 +182,36 @@ class AnimationSwitch extends Component {
   }
 
   callLeaveLifeCycle = () => {
-    const { dispatch } = this.props;
-    dispatch(actions.onStartLeave());
+    this.dispatch('onStartLeave');
     const leavePromise = this.saveCancellablePromise(this.routeComponentWillLeave());
     return leavePromise.promise
       .then(this.routeComponentDidLeave)
-      .then(() => dispatch(actions.onFinishLeave()))
+      .then(() => this.dispatch('onFinishLeave'))
       .then(() => this.setState({ leaveRouteKey: null }))
       .catch(() => {});
   }
 
   callAppearLifeCycle = () => {
-    const { dispatch } = this.props;
-    dispatch(actions.onStartEnter());
+    this.dispatch('onStartEnter');
     const appearPromise = this.saveCancellablePromise(this.routeComponentWillAppear());
     return appearPromise.promise
       .then(this.routeComponentDidAppear)
-      .then(() => dispatch(actions.onFinishEnter()))
+      .then(() => this.dispatch('onFinishEnter'))
       .catch(() => { });
   }
 
   callEnterLifeCycle = () => {
-    const { dispatch } = this.props;
-    dispatch(actions.onStartEnter());
+    this.dispatch('onStartEnter');
     const enterPromise = this.saveCancellablePromise(this.routeComponentWillEnter());
     return enterPromise.promise
       .then(this.routeComponentDidEnter)
-      .then(() => dispatch(actions.onFinishEnter()))
+      .then(() => this.dispatch('onFinishEnter'))
       .catch(() => {});
+  }
+
+  dispatch = (action) => {
+    const { dispatch } = this.props;
+    dispatch(actions[action]());
   }
 
   freezeParallelRef = () => {
