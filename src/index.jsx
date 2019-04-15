@@ -89,9 +89,10 @@ class AnimationSwitch extends Component {
       ? matchPath(nextProps.location.pathname, nextMatchedRoute.props)
       : null;
 
-    const onlyParamsAreChanged = (JSON.stringify(match?.params) !== JSON.stringify(nextMatch?.params)
-        || location.pathname !== nextProps.location.pathname)
-      && nextMatchedRoute.key === enterRouteKey;
+    const onlyParamsAreChanged = (
+      (JSON.stringify(match?.params) !== JSON.stringify(nextMatch?.params))
+      || location.pathname !== nextProps.location.pathname
+    ) && nextMatchedRoute.key === enterRouteKey;
 
     if (
       /*
