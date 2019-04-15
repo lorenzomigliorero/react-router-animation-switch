@@ -1,6 +1,7 @@
 const initialState = {
   enter: false,
   leave: false,
+  same: false,
   isActive: true,
 };
 
@@ -11,28 +12,41 @@ const PAGE_TRANSITION_START_LEAVE = 'PAGE_TRANSITION_START_LEAVE';
 const PAGE_TRANSITION_START = 'PAGE_TRANSITION_START';
 
 export const actions = {
-  onStart: () => ({
+  onStart: same => ({
     type: PAGE_TRANSITION_START,
-    payload: { isActive: true },
+    payload: {
+      isActive: true,
+      same,
+    },
   }),
-  onStartEnter: () => ({
+  onStartEnter: same => ({
     type: PAGE_TRANSITION_START_ENTER,
-    payload: { enter: true },
+    payload: {
+      enter: true,
+      same,
+    },
   }),
   onFinishEnter: () => ({
     type: PAGE_TRANSITION_FINISH_ENTER,
     payload: {
       enter: false,
       isActive: false,
+      same: false,
     },
   }),
-  onStartLeave: () => ({
+  onStartLeave: same => ({
     type: PAGE_TRANSITION_START_LEAVE,
-    payload: { leave: true },
+    payload: {
+      leave: true,
+      same,
+    },
   }),
-  onFinishLeave: () => ({
+  onFinishLeave: same => ({
     type: PAGE_TRANSITION_FINISH_LEAVE,
-    payload: { leave: false },
+    payload: {
+      leave: false,
+      same,
+    },
   }),
 };
 

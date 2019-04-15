@@ -4,42 +4,31 @@ import React, {
 import PropTypes from 'prop-types';
 import { withRouter, matchPath } from 'react-router-dom';
 import promiseCancel from 'promise-cancel';
-import {
-  actions,
-  reducer,
-} from './state';
+import { actions, reducer } from './state';
 
 class AnimationSwitch extends Component {
   static propTypes = {
     parallel: PropTypes.bool,
-    children: PropTypes.oneOfType([
-      PropTypes.arrayOf(PropTypes.node),
-      PropTypes.node,
-    ]).isRequired,
+    children: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node]).isRequired,
     match: PropTypes.object.isRequired, // eslint-disable-line
     location: PropTypes.shape({ pathname: PropTypes.string }).isRequired,
     dispatch: PropTypes.func,
-  }
+  };
 
   static defaultProps = {
     parallel: false,
     dispatch: () => {},
-  }
+  };
 
-  static promisedCallback = Promise.resolve.bind(Promise)
+  static promisedCallback = Promise.resolve.bind(Promise);
 
   static getMatchedRoute(props) {
-    const {
-      children,
-      location,
-    } = props;
+    const { children, location } = props;
 
     return children.find(({ props: routeProps }) => {
       /* If path isn't declared, force match for 404 */
       const { path } = routeProps;
-      return path
-        ? !!matchPath(location.pathname, routeProps)
-        : true;
+      return path ? !!matchPath(location.pathname, routeProps) : true;
     });
   }
 
@@ -53,7 +42,7 @@ class AnimationSwitch extends Component {
     const refCallback = (a) => {
       if (index === 0) {
         index += 1;
-        return ref.current = a; // eslint-disable-line
+        return (ref.current = a); // eslint-disable-line
       }
       return null;
     };
@@ -68,20 +57,18 @@ class AnimationSwitch extends Component {
     });
   }
 
-  cancellablePromises = []
+  cancellablePromises = [];
 
-  enterRef = React.createRef()
+  enterRef = React.createRef();
 
-  leaveRef = React.createRef()
+  leaveRef = React.createRef();
 
-  parallelRef = React.createRef()
+  parallelRef = React.createRef();
 
   state = (() => {
     const { location } = this.props;
     const route = AnimationSwitch.getMatchedRoute(this.props);
-    const match = route.props.path
-      ? matchPath(location.pathname, route.props)
-      : null;
+    const match = route.props.path ? matchPath(location.pathname, route.props) : null;
     return {
       match,
       isFetching: false,
@@ -94,19 +81,18 @@ class AnimationSwitch extends Component {
 
   static getDerivedStateFromProps = (nextProps, state) => {
     const {
-      match,
-      enterRouteKey,
-      leaveRouteKey,
+      location, match, enterRouteKey, leaveRouteKey,
     } = state;
 
     const nextMatchedRoute = AnimationSwitch.getMatchedRoute(nextProps);
     const nextMatch = nextMatchedRoute.props.path
       ? matchPath(nextProps.location.pathname, nextMatchedRoute.props)
       : null;
+
     const onlyParamsAreChanged = (
-      JSON.stringify(match?.params) !== JSON.stringify(nextMatch?.params)
-      && (nextMatchedRoute.key === enterRouteKey)
-    );
+      (JSON.stringify(match?.params) !== JSON.stringify(nextMatch?.params))
+      || location.pathname !== nextProps.location.pathname
+    ) && nextMatchedRoute.key === enterRouteKey;
 
     if (
       /*
@@ -117,7 +103,7 @@ class AnimationSwitch extends Component {
       || onlyParamsAreChanged
     ) {
       const { fetchData } = nextMatchedRoute.props.component;
-      const raceMode = (leaveRouteKey !== null);
+      const raceMode = leaveRouteKey !== null;
 
       return {
         raceMode,
@@ -131,8 +117,9 @@ class AnimationSwitch extends Component {
         prevLocation: state.location,
       };
     }
+
     return null;
-  }
+  };
 
   componentDidMount() {
     this.callAppearLifeCycle();
@@ -140,19 +127,13 @@ class AnimationSwitch extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     const {
-      enterRouteKey,
-      leaveRouteKey,
-      onlyParamsAreChanged,
-      isFetching,
-      raceMode,
+      enterRouteKey, leaveRouteKey, onlyParamsAreChanged, isFetching, raceMode,
     } = this.state;
 
     const { parallel } = this.props;
 
-    const initTransition = (
-      prevState.enterRouteKey !== enterRouteKey
-      || (prevState.enterRouteKey === enterRouteKey && onlyParamsAreChanged && isFetching)
-    );
+    const initTransition = prevState.enterRouteKey !== enterRouteKey
+      || (prevState.enterRouteKey === enterRouteKey && onlyParamsAreChanged && isFetching);
 
     const fetchIsEnded = prevState.isFetching && !isFetching;
 
@@ -189,7 +170,7 @@ class AnimationSwitch extends Component {
       .then(() => this.dispatch('onFinishLeave'))
       .then(() => this.setState({ leaveRouteKey: null }))
       .catch(() => {});
-  }
+  };
 
   callAppearLifeCycle = () => {
     this.dispatch('onStartEnter');
@@ -197,8 +178,8 @@ class AnimationSwitch extends Component {
     return appearPromise.promise
       .then(this.routeComponentDidAppear)
       .then(() => this.dispatch('onFinishEnter'))
-      .catch(() => { });
-  }
+      .catch(() => {});
+  };
 
   callEnterLifeCycle = () => {
     this.dispatch('onStartEnter');
@@ -207,38 +188,36 @@ class AnimationSwitch extends Component {
       .then(this.routeComponentDidEnter)
       .then(() => this.dispatch('onFinishEnter'))
       .catch(() => {});
-  }
+  };
 
   dispatch = (action) => {
     const { dispatch } = this.props;
-    dispatch(actions[action]());
-  }
+    const { onlyParamsAreChanged } = this.state;
+    dispatch(actions[action](onlyParamsAreChanged));
+  };
 
   freezeParallelRef = () => {
     const bounds = this.parallelRef.current.getBoundingClientRect();
     this.parallelRef.current.style.position = 'fixed';
     this.parallelRef.current.style.top = `${bounds.top}px`;
     this.parallelRef.current.style.left = `${bounds.left}px`;
-  }
+  };
 
   saveCancellablePromise = (promise) => {
     const cancellablePromise = promiseCancel(promise);
     this.cancellablePromises.push(cancellablePromise);
     return cancellablePromise;
-  }
+  };
 
   resetCancellablePromises = () => {
     this.cancellablePromises.forEach(promise => promise.cancel());
     this.cancellablePromises = [];
-  }
+  };
 
   fetchData = () => {
     const { dispatch } = this.props;
 
-    const {
-      match,
-      fetchData,
-    } = this.state;
+    const { match, fetchData } = this.state;
 
     const fetchDataPromise = this.getRouteMethod({
       method: fetchData,
@@ -247,22 +226,17 @@ class AnimationSwitch extends Component {
       dispatch,
     });
 
-    return this.saveCancellablePromise(fetchDataPromise()).promise
-      .then(() => this.setState({ isFetching: false }))
+    return this.saveCancellablePromise(fetchDataPromise())
+      .promise.then(() => this.setState({ isFetching: false }))
       .catch(() => {});
-  }
+  };
 
   getRouteMethod = ({
-    name,
-    ref,
-    method,
-    ...params
+    name, ref, method, ...params
   }) => {
-    const fn = method
-      || (ref?.current && ref?.current[name])
-      || this.constructor.promisedCallback;
+    const fn = method || (ref?.current && ref?.current[name]) || this.constructor.promisedCallback;
     return fn.bind(this, params);
-  }
+  };
 
   routeComponentWillAppear = () => this.getRouteMethod({
     ref: this.enterRef,
@@ -278,9 +252,7 @@ class AnimationSwitch extends Component {
     const { onlyParamsAreChanged } = this.state;
     return this.getRouteMethod({
       ref: this.enterRef,
-      name: onlyParamsAreChanged
-        ? 'sameComponentWillEnter'
-        : 'componentWillEnter',
+      name: onlyParamsAreChanged ? 'sameComponentWillEnter' : 'componentWillEnter',
     })();
   };
 
@@ -288,9 +260,7 @@ class AnimationSwitch extends Component {
     const { onlyParamsAreChanged } = this.state;
     return this.getRouteMethod({
       ref: this.enterRef,
-      name: onlyParamsAreChanged
-        ? 'sameComponentDidEnter'
-        : 'componentDidEnter',
+      name: onlyParamsAreChanged ? 'sameComponentDidEnter' : 'componentDidEnter',
     })();
   };
 
@@ -298,9 +268,7 @@ class AnimationSwitch extends Component {
     const { onlyParamsAreChanged } = this.state;
     return this.getRouteMethod({
       ref: this.leaveRef,
-      name: onlyParamsAreChanged
-        ? 'sameComponentWillLeave'
-        : 'componentWillLeave',
+      name: onlyParamsAreChanged ? 'sameComponentWillLeave' : 'componentWillLeave',
     })();
   };
 
@@ -308,9 +276,7 @@ class AnimationSwitch extends Component {
     const { onlyParamsAreChanged } = this.state;
     return this.getRouteMethod({
       ref: this.leaveRef,
-      name: onlyParamsAreChanged
-        ? 'sameComponentDidLeave'
-        : 'componentDidLeave',
+      name: onlyParamsAreChanged ? 'sameComponentDidLeave' : 'componentDidLeave',
     })();
   };
 
@@ -324,43 +290,39 @@ class AnimationSwitch extends Component {
       location,
     } = this.state;
 
-    const {
-      children,
-      parallel,
-    } = this.props;
+    const { children, parallel } = this.props;
 
-    const leaveRoute = raceMode ? null : AnimationSwitch.getRouteWithRef(
-      { location: prevLocation },
-      children.find(r => r.key === leaveRouteKey),
-      this.leaveRef,
-    );
-
-    const enterRoute = isFetching ? null : AnimationSwitch.getRouteWithRef(
-      { location },
-      children.find(r => r.key === enterRouteKey),
-      this.enterRef,
-    );
-
-    return !parallel
-      ? (leaveRoute || enterRoute)
-      : (
-        <Fragment>
-          {leaveRoute && parallel
-            ? (
-              <section ref={this.parallelRef}>
-                {leaveRoute}
-              </section>
-            ) : leaveRoute
-          }
-          {enterRoute}
-        </Fragment>
+    const leaveRoute = raceMode
+      ? null
+      : AnimationSwitch.getRouteWithRef(
+        { location: prevLocation },
+        children.find(r => r.key === leaveRouteKey),
+        this.leaveRef,
       );
+
+    const enterRoute = isFetching
+      ? null
+      : AnimationSwitch.getRouteWithRef(
+        { location },
+        children.find(r => r.key === enterRouteKey),
+        this.enterRef,
+      );
+
+    return !parallel ? (
+      leaveRoute || enterRoute
+    ) : (
+      <Fragment>
+        {leaveRoute && parallel ? (
+          <section ref={this.parallelRef}>{leaveRoute}</section>
+        ) : (
+          leaveRoute
+        )}
+        {enterRoute}
+      </Fragment>
+    );
   }
 }
 
-export {
-  actions,
-  reducer,
-};
+export { actions, reducer };
 
 export default withRouter(AnimationSwitch);
