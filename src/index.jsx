@@ -75,6 +75,7 @@ class AnimationSwitch extends Component {
       leaveRouteKey: null,
       location,
       prevLocation: null,
+      onlyParamsAreChanged: false,
       enterRouteKey: route.key,
     };
   })();
