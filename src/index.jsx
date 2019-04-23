@@ -68,12 +68,14 @@ class AnimationSwitch extends Component {
   state = (() => {
     const { location } = this.props;
     const route = AnimationSwitch.getMatchedRoute(this.props);
+    const { preload } = route.props.component;
     const match = route.props.path ? matchPath(location.pathname, route.props) : null;
     return {
       match,
       isFetching: false,
       leaveRouteKey: null,
       location,
+      preload,
       prevLocation: null,
       onlyParamsAreChanged: false,
       enterRouteKey: route.key,
@@ -103,12 +105,15 @@ class AnimationSwitch extends Component {
       nextMatchedRoute.key !== enterRouteKey
       || onlyParamsAreChanged
     ) {
-      const { fetchData } = nextMatchedRoute.props.component;
+      const { fetchData, component } = nextMatchedRoute.props;
+      const { preload } = component;
+
       const raceMode = leaveRouteKey !== null;
 
       return {
         raceMode,
         enterRouteKey: nextMatchedRoute.key,
+        preload,
         fetchData,
         isFetching: true,
         leaveRouteKey: !raceMode ? enterRouteKey : null,
@@ -126,9 +131,14 @@ class AnimationSwitch extends Component {
     this.callAppearLifeCycle();
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  async componentDidUpdate(prevProps, prevState) {
     const {
-      enterRouteKey, leaveRouteKey, onlyParamsAreChanged, isFetching, raceMode,
+      enterRouteKey,
+      preload,
+      leaveRouteKey,
+      onlyParamsAreChanged,
+      isFetching,
+      raceMode,
     } = this.state;
 
     const { parallel } = this.props;
@@ -138,6 +148,9 @@ class AnimationSwitch extends Component {
 
     const fetchIsEnded = prevState.isFetching && !isFetching;
 
+    if (preload) {
+      await preload();
+    }
     if (initTransition) {
       this.dispatch('onStart');
       this.resetCancellablePromises();
