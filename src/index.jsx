@@ -68,7 +68,7 @@ class AnimationSwitch extends Component {
   state = (() => {
     const { location } = this.props;
     const route = AnimationSwitch.getMatchedRoute(this.props);
-    const { preload } = route.props.component;
+    const preload = route.props?.component?.preload;
     const match = route.props.path ? matchPath(location.pathname, route.props) : null;
     return {
       match,
