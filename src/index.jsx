@@ -1,5 +1,5 @@
 import React, {
-  createElement, cloneElement, Component, Fragment,
+  createElement, cloneElement, Component,
 } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter, matchPath } from 'react-router-dom';
@@ -8,7 +8,6 @@ import { actions, reducer } from './state';
 
 class AnimationSwitch extends Component {
   static propTypes = {
-    parallel: PropTypes.bool,
     children: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node]).isRequired,
     match: PropTypes.object.isRequired, // eslint-disable-line
     location: PropTypes.shape({ pathname: PropTypes.string }).isRequired,
@@ -16,7 +15,6 @@ class AnimationSwitch extends Component {
   };
 
   static defaultProps = {
-    parallel: false,
     dispatch: () => {},
   };
 
@@ -141,8 +139,6 @@ class AnimationSwitch extends Component {
       raceMode,
     } = this.state;
 
-    const { parallel } = this.props;
-
     const initTransition = prevState.enterRouteKey !== enterRouteKey
       || (prevState.enterRouteKey === enterRouteKey && onlyParamsAreChanged && isFetching);
 
@@ -151,6 +147,7 @@ class AnimationSwitch extends Component {
     if (preload) {
       await preload();
     }
+
     if (initTransition) {
       this.dispatch('onStart');
       this.resetCancellablePromises();
@@ -158,20 +155,14 @@ class AnimationSwitch extends Component {
     }
 
     if (fetchIsEnded) {
-      if (parallel) {
-        if (!raceMode) {
-          this.freezeParallelRef();
-          this.callLeaveLifeCycle();
-        }
-        this.callEnterLifeCycle();
-      } else if (!raceMode) {
+      if (!raceMode) {
         this.callLeaveLifeCycle();
       } else {
         this.callEnterLifeCycle();
       }
     }
 
-    if (prevState.leaveRouteKey && leaveRouteKey === null && !raceMode && !parallel) {
+    if (prevState.leaveRouteKey && leaveRouteKey === null && !raceMode) {
       this.callEnterLifeCycle();
     }
   }
@@ -208,13 +199,6 @@ class AnimationSwitch extends Component {
     const { dispatch } = this.props;
     const { onlyParamsAreChanged } = this.state;
     dispatch(actions[action](onlyParamsAreChanged));
-  };
-
-  freezeParallelRef = () => {
-    const bounds = this.parallelRef.current.getBoundingClientRect();
-    this.parallelRef.current.style.position = 'fixed';
-    this.parallelRef.current.style.top = `${bounds.top}px`;
-    this.parallelRef.current.style.left = `${bounds.left}px`;
   };
 
   saveCancellablePromise = (promise) => {
@@ -304,7 +288,7 @@ class AnimationSwitch extends Component {
       location,
     } = this.state;
 
-    const { children, parallel } = this.props;
+    const { children } = this.props;
 
     const leaveRoute = raceMode
       ? null
@@ -322,18 +306,7 @@ class AnimationSwitch extends Component {
         this.enterRef,
       );
 
-    return !parallel ? (
-      leaveRoute || enterRoute
-    ) : (
-      <Fragment>
-        {leaveRoute && parallel ? (
-          <section ref={this.parallelRef}>{leaveRoute}</section>
-        ) : (
-          leaveRoute
-        )}
-        {enterRoute}
-      </Fragment>
-    );
+    return leaveRoute || enterRoute;
   }
 }
 
