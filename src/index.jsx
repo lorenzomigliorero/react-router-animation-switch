@@ -66,8 +66,11 @@ class AnimationSwitch extends Component {
   state = (() => {
     const { location } = this.props;
     const route = AnimationSwitch.getMatchedRoute(this.props);
+    const match = AnimationSwitch.getNormalizedMatch(
+      route,
+      location,
+    );
     const preload = route.props?.component?.preload;
-    const match = route.props.path ? matchPath(location.pathname, route.props) : null;
     return {
       match,
       isFetching: false,
@@ -80,15 +83,24 @@ class AnimationSwitch extends Component {
     };
   })();
 
+  static getNormalizedMatch = (route, location) => {
+    const match = route.props.path ? matchPath(location.pathname, route.props) : {};
+    Object.assign(match, route.props);
+    delete match.component;
+    delete match.fetchData;
+    return match;
+  }
+
   static getDerivedStateFromProps = (nextProps, state) => {
     const {
       location, match, enterRouteKey, leaveRouteKey,
     } = state;
 
     const nextMatchedRoute = AnimationSwitch.getMatchedRoute(nextProps);
-    const nextMatch = nextMatchedRoute.props.path
-      ? matchPath(nextProps.location.pathname, nextMatchedRoute.props)
-      : null;
+    const nextMatch = AnimationSwitch.getNormalizedMatch(
+      nextMatchedRoute,
+      nextProps.location,
+    );
 
     const onlyParamsAreChanged = (
       (JSON.stringify(match?.params) !== JSON.stringify(nextMatch?.params))
@@ -124,6 +136,14 @@ class AnimationSwitch extends Component {
 
     return null;
   };
+
+  constructor(props) {
+    super(props);
+    if (typeof window === 'undefined') {
+      const { match } = this.state;
+      this.dispatch('onSSR', match);
+    }
+  }
 
   componentDidMount() {
     this.callAppearLifeCycle();
@@ -167,6 +187,7 @@ class AnimationSwitch extends Component {
     }
   }
 
+
   callLeaveLifeCycle = () => {
     this.dispatch('onStartLeave');
     const leavePromise = this.saveCancellablePromise(this.routeComponentWillLeave());
@@ -178,7 +199,8 @@ class AnimationSwitch extends Component {
   };
 
   callAppearLifeCycle = () => {
-    this.dispatch('onStartEnter');
+    const { match } = this.state;
+    this.dispatch('onStartEnter', match);
     const appearPromise = this.saveCancellablePromise(this.routeComponentWillAppear());
     return appearPromise.promise
       .then(this.routeComponentDidAppear)
@@ -187,7 +209,8 @@ class AnimationSwitch extends Component {
   };
 
   callEnterLifeCycle = () => {
-    this.dispatch('onStartEnter');
+    const { match } = this.state;
+    this.dispatch('onStartEnter', match);
     const enterPromise = this.saveCancellablePromise(this.routeComponentWillEnter());
     return enterPromise.promise
       .then(this.routeComponentDidEnter)
@@ -195,10 +218,13 @@ class AnimationSwitch extends Component {
       .catch(() => {});
   };
 
-  dispatch = (action) => {
+  dispatch = (action, props) => {
     const { dispatch } = this.props;
     const { onlyParamsAreChanged } = this.state;
-    dispatch(actions[action](onlyParamsAreChanged));
+    dispatch(actions[action]({
+      same: onlyParamsAreChanged,
+      ...props,
+    }));
   };
 
   saveCancellablePromise = (promise) => {
