@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import { withRouter, matchPath } from 'react-router-dom';
 import promiseCancel from 'promise-cancel';
 import { actions, reducer } from './state';
+import * as utils from './utils';
 
 class AnimationSwitch extends Component {
   static propTypes = {
@@ -55,6 +56,16 @@ class AnimationSwitch extends Component {
     });
   }
 
+  static getNormalizedMatch = (route, pathname) => {
+    const match = route.path ? matchPath(pathname, route) : null;
+    if (match) {
+      Object.assign(match, route);
+      delete match.component;
+      delete match.fetchData;
+    }
+    return match;
+  }
+
   cancellablePromises = [];
 
   enterRef = React.createRef();
@@ -67,8 +78,8 @@ class AnimationSwitch extends Component {
     const { location } = this.props;
     const route = AnimationSwitch.getMatchedRoute(this.props);
     const match = AnimationSwitch.getNormalizedMatch(
-      route,
-      location,
+      route.props,
+      location.pathname,
     );
     const preload = route.props?.component?.preload;
     return {
@@ -83,14 +94,6 @@ class AnimationSwitch extends Component {
     };
   })();
 
-  static getNormalizedMatch = (route, location) => {
-    const match = route.props.path ? matchPath(location.pathname, route.props) : {};
-    Object.assign(match, route.props);
-    delete match.component;
-    delete match.fetchData;
-    return match;
-  }
-
   static getDerivedStateFromProps = (nextProps, state) => {
     const {
       location, match, enterRouteKey, leaveRouteKey,
@@ -98,8 +101,8 @@ class AnimationSwitch extends Component {
 
     const nextMatchedRoute = AnimationSwitch.getMatchedRoute(nextProps);
     const nextMatch = AnimationSwitch.getNormalizedMatch(
-      nextMatchedRoute,
-      nextProps.location,
+      nextMatchedRoute.props,
+      nextProps.location.pathname,
     );
 
     const onlyParamsAreChanged = (
@@ -136,14 +139,6 @@ class AnimationSwitch extends Component {
 
     return null;
   };
-
-  constructor(props) {
-    super(props);
-    if (typeof window === 'undefined') {
-      const { match } = this.state;
-      this.dispatch('onSSR', match);
-    }
-  }
 
   componentDidMount() {
     this.callAppearLifeCycle();
@@ -336,6 +331,6 @@ class AnimationSwitch extends Component {
   }
 }
 
-export { actions, reducer };
+export { actions, reducer, utils };
 
 export default withRouter(AnimationSwitch);
