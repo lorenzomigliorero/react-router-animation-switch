@@ -75,18 +75,16 @@ export const actions = {
 export const reducer = (state = initialState, action) => {
   if (typeof action === 'undefined') return state;
   switch (action.type) {
+    case PAGE_TRANSITION_SSR:
     case PAGE_TRANSITION_START:
     case PAGE_TRANSITION_START_ENTER:
     case PAGE_TRANSITION_FINISH_ENTER:
     case PAGE_TRANSITION_FINISH_LEAVE:
-    case PAGE_TRANSITION_SSR:
     case PAGE_TRANSITION_START_LEAVE: {
-      const newState = {
+      return {
         ...state,
         ...action.payload,
       };
-      // newState.isActive = newState.enter || newState.leave;
-      return newState;
     }
     default:
       return state;
