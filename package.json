@@ -2,7 +2,7 @@
   "name": "react-router-animation-switch",
   "version": "0.6.0",
   "description": "A component to manage routes animations with React.16.7+",
-  "main": "src/index.jsx",
+  "main": "dist/index.js",
   "scripts": {
     "dev": "malmo dev",
     "commit": "git-cz",
