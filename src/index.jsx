@@ -50,6 +50,7 @@ class AnimationSwitch extends Component {
       ...props,
       component: null,
       render: propsFromRender => createElement(route.props.component, {
+        ...route.props,
         ...propsFromRender,
         ref: refCallback,
       }),
@@ -119,14 +120,13 @@ class AnimationSwitch extends Component {
       || onlyParamsAreChanged
     ) {
       const { fetchData, component } = nextMatchedRoute.props;
-      const { preload } = component;
 
       const raceMode = leaveRouteKey !== null;
 
       return {
         raceMode,
         enterRouteKey: nextMatchedRoute.key,
-        preload,
+        preload: component?.preload,
         fetchData,
         isFetching: true,
         leaveRouteKey: !raceMode ? enterRouteKey : null,
