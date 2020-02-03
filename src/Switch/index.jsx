@@ -1,5 +1,5 @@
 // eslint-disable-next-line object-curly-newline
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useMemo, useEffect, useState, useRef, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { useRouteMatch, useLocation, matchPath } from 'react-router-dom';
 import { useMachine } from '@xstate/react';
@@ -101,7 +101,7 @@ const AnimationSwitch = ({
     send('TRANSITION');
   }, [location.pathname]);
 
-  const routes = [
+  const routes = useMemo(() => [
     renderRoute({
       route: routeByCurrentLocation,
       location: currentLocation,
@@ -115,7 +115,10 @@ const AnimationSwitch = ({
       location: nextLocation,
       ref: nextRef,
     }),
-  ];
+  ], [
+    currentLocation,
+    nextLocation,
+  ]);
 
   return React.createElement(React.Fragment, null, routes);
 };
