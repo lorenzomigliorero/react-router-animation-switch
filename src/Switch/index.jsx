@@ -48,7 +48,7 @@ const AnimationSwitch = ({
   const nextRef = useRef();
 
   const services = {
-    preload: () => safePromise(routeByLocation.props.preload)(),
+    preload: () => safePromise(routeByLocation.props.component?.preload)(),
     fetch: () => safePromise(routeByLocation.props.fetchData)({ dispatch, match }),
     appear: () => safePromise(currentRef.current?.componentWillAppear)(),
     leave: () => safePromise(currentRef.current?.componentWillLeave)(),
