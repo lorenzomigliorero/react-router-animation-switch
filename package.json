@@ -1,6 +1,6 @@
 {
   "name": "react-router-animation-switch",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A component to manage route transition with React",
   "main": "dist/index.js",
   "scripts": {
