@@ -28,7 +28,7 @@ If exposed, component.fetchData will be invoked (useful in SSR environments for 
 
 See [here](https://xstate.js.org/viz/?gist=e24ae4a552bab90cc9ba85413e5392ea) the related xstate machine.
 
-## <a name="howitworks"></a>Props table
+## <a name="propstable"></a>Props table
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
